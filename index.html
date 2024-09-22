@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khan Academy Points Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e0f7e0; /* Light green background */
+            margin: 20px;
+            color: #2c3e50; /* Darker text for contrast */
+        }
+
+        h1, h2 {
+            text-align: center;
+            font-family: 'Fredoka One', cursive; /* Bubble letter font */
+            color: #2e8b57; /* Dark green for headings */
+            letter-spacing: 1.5px;
+        }
+
+        p, ul {
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        .directions, .form-section {
+            background-color: #ffffff;
+            border: 2px solid #2e8b57; /* Dark green border */
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="number"], input[type="text"] {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #2e8b57;
+            width: 200px;
+            text-align: center;
+            background-color: #eaf5ea; /* Light green input background */
+        }
+
+        button {
+            background-color: #2e8b57; /* Dark green button */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #3aa472; /* Slightly brighter green */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background-color: white;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #2e8b57;
+            text-align: center;
+            font-family: 'Arial', sans-serif;
+            font-size: 18px;
+        }
+
+        th {
+            background-color: #2e8b57;
+            color: white;
+        }
+
+        td {
+            background-color: #eaf5ea;
+        }
+
+        a {
+            color: #006400; /* Dark green for links */
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Khan Academy Points Game</h1>
+
+<div class="directions">
+    <h2>Directions</h2>
+    <p>
+        Complete the <a href="https://www.khanacademy.org/test-prep/sat-reading-and-writing/test/x0d47bcec73eb6c4b:course-challenge" target="_blank">
+        Khan Academy Reading and Writing Course Mastery Quiz</a> as fast and accurately as possible.
+        Make sure to use a stopwatch to time yourself. After completing the quiz, enter your results below.
+    </p>
+    <p>
+        <strong>Point System:</strong> Every second quicker than 32 minutes, you get 1 point. Multiply the seconds saved by the cube of your accuracy percentage to get your final score.
+    </p>
+    <p>For example, if you finish in 25:00 minutes with 90% accuracy:</p>
+    <ul style="text-align:left; display:inline-block;">
+        <li>32 minutes - 25 minutes = 7 minutes saved</li>
+        <li>7 minutes = 420 seconds</li>
+        <li>420 * (0.9)^3 = 306.18 points</li>
+    </ul>
+    <p>Use the form below to calculate your points and see your SAT score range!</p>
+</div>
+
+<div class="form-section">
+    <h2>Enter your quiz data</h2>
+    <form id="scoreForm">
+        <label for="name">Your Name</label><br>
+        <input type="text" id="name" required placeholder="Your Name"><br>
+        
+        <label for="time">Time Completed (MM:SS)</label><br>
+        <input type="text" id="time" required placeholder="MM:SS"><br>
+        
+        <label for="accuracy">Accuracy (%)</label><br>
+        <input type="number" id="accuracy" required min="1" max="100"><br>
+        
+        <button type="submit">Calculate Score</button>
+    </form>
+</div>
+
+<div class="form-section">
+    <h2>Your Score</h2>
+    <p id="finalScore"></p>
+</div>
+
+<div class="leaderboard">
+    <h2>Leaderboard</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>Time</th>
+                <th>Accuracy</th>
+                <th>Points</th>
+                <th>SAT Range</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboard">
+            <!-- Leaderboard entries will be inserted here -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const leaderboard = [
+        { name: 'Parker', time: '15:02.75', accuracy: 97, points: 928.42, satRange: getSatRange(928.42) },
+        { name: 'Parker', time: '13:46.31', accuracy: 87, points: 720.20, satRange: getSatRange(720.20) },
+        { name: 'Parker', time: '19:45.66', accuracy: 97, points: 670.21, satRange: getSatRange(670.21) },
+        { name: 'Parker', time: '19:50.15', accuracy: 93, points: 587.06, satRange: getSatRange(587.06) },
+        { name: 'Parker', time: '19:29.72', accuracy: 90, points: 546.95, satRange: getSatRange(546.95) },
+        { name: 'Parker', time: '21:52.67', accuracy: 93, points: 488.51, satRange: getSatRange(488.51) },
+        { name: 'Parker', time: '20:14.01', accuracy: 87, points: 464.90, satRange: getSatRange(464.90) },
+        { name: 'Veeresh', time: '18:23', accuracy: 77, points: 358.64, satRange: getSatRange(358.64) }
+    ];
+
+    function calculatePoints(time, accuracy) {
+        const [minutes, seconds] = time.split(':').map(Number);
+        const totalTime = minutes * 60 + seconds;
+        const timeSaved = 32 * 60 - totalTime;  // 32 minutes is the base time
+        const points = timeSaved * Math.pow(accuracy / 100, 3);
+        return points.toFixed(2);
+    }
+
+    function getSatRange(points) {
+        if (points >= 1000) return '780-800';
+        else if (points >= 900) return '750-779';
+        else if (points >= 800) return '720-749';
+        else if (points >= 700) return '690-719';
+        else if (points >= 600) return '660-689';
+        else if (points >= 500) return '630-659';
+        else if (points >= 400) return '600-629';
+        else if (points >= 300) return '570-599';
+        else if (points >= 200) return '540-569';
+        else if (points >= 100) return '500-539';
+        else return 'Below 500';
+    }
+
+    document.getElementById('scoreForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('name').value;
+        const time = document.getElementById('time').value;
+        const accuracy = parseInt(document.getElementById('accuracy').value);
+        const points = calculatePoints(time, accuracy);
+        const satRange = getSatRange(points);
+        
+        document.getElementById('finalScore').textContent = `${name}, you scored ${points} points! Your SAT range is ${satRange}.`;
+        
+        // Add to leaderboard
+        leaderboard.push({ name, time, accuracy, points, satRange });
+        updateLeaderboard();
+    });
+
+    function updateLeaderboard() {
+        const leaderboardTable = document.getElementById('leaderboard');
+        leaderboardTable.innerHTML = '';
+        leaderboard.sort((a, b) => b.points - a.points);
+        
+        leaderboard.forEach((entry, index) => {
+            const row = `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${entry.name}</td>
+                    <td>${entry.time}</td>
+                    <td>${entry.accuracy}%</td>
+                    <td>${entry.points}</td>
+                    <td>${entry.satRange}</td>
+                </tr>
+            `;
+            leaderboardTable.innerHTML += row;
+        });
+    }
+
+    updateLeaderboard();  // Initialize the leaderboard on page load
+</script>
+
+</body>
+</html>
